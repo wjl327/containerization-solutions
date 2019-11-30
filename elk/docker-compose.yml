@@ -1,0 +1,36 @@
+elasticsearch:
+  image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+  volumes:
+    - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    - ./elasticsearch/jvm.options:/usr/share/elasticsearch/config/jvm.options
+  environment:
+    discovery.type: single-node
+
+logstash:
+  image: docker.elastic.co/logstash/logstash:7.4.2
+  volumes:
+    - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+    - ./logstash/jvm.options:/usr/share/logstash/config/jvm.options
+  links:
+    - "elasticsearch"
+
+filebeat:
+  image: docker.elastic.co/beats/filebeat:7.4.2
+  volumes:
+    - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    - ./log:/var/log
+  links:
+    - "logstash"
+
+kibana:
+  image: docker.elastic.co/kibana/kibana:7.4.2
+  ports:
+    - "5601:5601"
+  volumes:
+    - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+  links:
+    - "elasticsearch"
